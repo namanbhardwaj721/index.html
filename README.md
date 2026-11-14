@@ -1,388 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tic Tac Toe Game</title>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-char board[9];
-int humanWins = 0;
-int aiWins = 0;
-int draws = 0;
-
-// Reset the board
-void resetBoard()
-{
-    for(int i = 0; i < 9; i++)
-        board[i] = '1' + i;
-}
-
-// Display the board
-void displayBoard()
-{
-    printf("\n");
-    printf("       TIC TAC TOE\n\n");
-
-    printf("        %c | %c | %c\n", board[0], board[1], board[2]);
-    printf("       ---|---|---\n");
-    printf("        %c | %c | %c\n", board[3], board[4], board[5]);
-    printf("       ---|---|---\n");
-    printf("        %c | %c | %c\n", board[6], board[7], board[8]);
-
-    printf("\n");
-}
-
-// Check winner
-char checkWinner()
-{
-    int win[8][3] = {
-        {0,1,2}, {3,4,5}, {6,7,8},
-        {0,3,6}, {1,4,7}, {2,5,8},
-        {0,4,8}, {2,4,6}
-    };
-
-    for(int i = 0; i < 8; i++)
-    {
-        int a = win[i][0];
-        int b = win[i][1];
-        int c = win[i][2];
-
-        if(board[a] == board[b] && board[b] == board[c])
-            return board[a];
-    }
-
-    return ' ';
-}
-
-// Check if board is full
-int isDraw()
-{
-    for(int i = 0; i < 9; i++)
-    {
-        if(board[i] != 'X' && board[i] != 'O')
-            return 0;
-    }
-
-    return 1;
-}
-
-// Check if a position is empty
-int isEmpty(int position)
-{
-    return board[position] != 'X' && board[position] != 'O';
-}
-
-// Make a random move
-int randomMove()
-{
-    int moves[9];
-    int count = 0;
-
-    for(int i = 0; i < 9; i++)
-    {
-        if(isEmpty(i))
-            moves[count++] = i;
-    }
-
-    if(count == 0)
-        return -1;
-
-    return moves[rand() % count];
-}
-
-// Find a winning or blocking move
-int findWinningMove(char mark)
-{
-    for(int i = 0; i < 9; i++)
-    {
-        if(isEmpty(i))
-        {
-            char old = board[i];
-            board[i] = mark;
-
-            if(checkWinner() == mark)
-            {
-                board[i] = old;
-                return i;
-            }
-
-            board[i] = old;
-        }
-    }
-
-    return -1;
-}
-
-// Easy difficulty
-int easyAI()
-{
-    return randomMove();
-}
-
-// Medium difficulty
-int mediumAI()
-{
-    int move;
-
-    // Try to win
-    move = findWinningMove('O');
-    if(move != -1)
-        return move;
-
-    // Block the player
-    move = findWinningMove('X');
-    if(move != -1)
-        return move;
-
-    // Take center
-    if(isEmpty(4))
-        return 4;
-
-    // Take a corner
-    int corners[] = {0, 2, 6, 8};
-
-    for(int i = 0; i < 4; i++)
-    {
-        if(isEmpty(corners[i]))
-            return corners[i];
-    }
-
-    return randomMove();
-}
-
-// Minimax algorithm
-int minimax(int isMaximizing)
-{
-    char result = checkWinner();
-
-    if(result == 'O')
-        return 10;
-
-    if(result == 'X')
-        return -10;
-
-    if(isDraw())
-        return 0;
-
-    if(isMaximizing)
-    {
-        int bestScore = -1000;
-
-        for(int i = 0; i < 9; i++)
-        {
-            if(isEmpty(i))
-            {
-                char old = board[i];
-                board[i] = 'O';
-
-                int score = minimax(0);
-
-                board[i] = old;
-
-                if(score > bestScore)
-                    bestScore = score;
-            }
+    <style>
+        * {
+            box-sizing: border-box;
         }
 
-        return bestScore;
-    }
-    else
-    {
-        int bestScore = 1000;
-
-        for(int i = 0; i < 9; i++)
-        {
-            if(isEmpty(i))
-            {
-                char old = board[i];
-                board[i] = 'X';
-
-                int score = minimax(1);
-
-                board[i] = old;
-
-                if(score < bestScore)
-                    bestScore = score;
-            }
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+            background: linear-gradient(135deg, #141e30, #243b55);
         }
 
-        return bestScore;
-    }
-}
-
-// Hard difficulty
-int hardAI()
-{
-    int bestScore = -1000;
-    int bestMove = -1;
-
-    for(int i = 0; i < 9; i++)
-    {
-        if(isEmpty(i))
-        {
-            char old = board[i];
-            board[i] = 'O';
-
-            int score = minimax(0);
-
-            board[i] = old;
-
-            if(score > bestScore)
-            {
-                bestScore = score;
-                bestMove = i;
-            }
-        }
-    }
-
-    return bestMove;
-}
-
-// AI makes a move
-void computerMove(int difficulty)
-{
-    int move;
-
-    printf("\nComputer is thinking...\n");
-
-    if(difficulty == 1)
-        move = easyAI();
-    else if(difficulty == 2)
-        move = mediumAI();
-    else
-        move = hardAI();
-
-    if(move != -1)
-    {
-        board[move] = 'O';
-        printf("Computer selected position %d!\n", move + 1);
-    }
-}
-
-// Display scoreboard
-void displayScore()
-{
-    printf("\n========== SCOREBOARD ==========\n");
-    printf("Your Wins       : %d\n", humanWins);
-    printf("Computer Wins   : %d\n", aiWins);
-    printf("Draws           : %d\n", draws);
-    printf("================================\n");
-}
-
-// Main function
-int main()
-{
-    int difficulty;
-    int position;
-    char playAgain;
-
-    srand((unsigned int)time(NULL));
-
-    printf("\n====================================\n");
-    printf("       TIC TAC TOE VS AI\n");
-    printf("====================================\n");
-
-    printf("\nSelect Difficulty:\n");
-    printf("1. Easy\n");
-    printf("2. Medium\n");
-    printf("3. Hard\n");
-
-    do
-    {
-        printf("\nEnter difficulty (1-3): ");
-
-        if(scanf("%d", &difficulty) != 1)
-        {
-            printf("Invalid input!\n");
-
-            int ch;
-            while((ch = getchar()) != '\n' && ch != EOF);
-            difficulty = 0;
-            continue;
+        .game {
+            max-width: 430px;
+            margin: 20px auto;
+            padding: 25px;
+            background: white;
+            color: #222;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px #0005;
         }
 
-        if(difficulty < 1 || difficulty > 3)
-            printf("Choose between 1 and 3!\n");
-
-    } while(difficulty < 1 || difficulty > 3);
-
-    do
-    {
-        resetBoard();
-
-        while(1)
-        {
-            displayBoard();
-
-            printf("Your turn (X).\n");
-            printf("Enter position (1-9): ");
-
-            if(scanf("%d", &position) != 1)
-            {
-                printf("Please enter a valid number!\n");
-
-                int ch;
-                while((ch = getchar()) != '\n' && ch != EOF);
-                continue;
-            }
-
-            if(position < 1 || position > 9)
-            {
-                printf("Invalid position! Try again.\n");
-                continue;
-            }
-
-            if(!isEmpty(position - 1))
-            {
-                printf("Position already occupied!\n");
-                continue;
-            }
-
-            board[position - 1] = 'X';
-
-            if(checkWinner() == 'X')
-            {
-                displayBoard();
-                printf("\nCongratulations! YOU WIN!\n");
-                humanWins++;
-                break;
-            }
-
-            if(isDraw())
-            {
-                displayBoard();
-                printf("\nIt's a DRAW!\n");
-                draws++;
-                break;
-            }
-
-            computerMove(difficulty);
-
-            if(checkWinner() == 'O')
-            {
-                displayBoard();
-                printf("\nCOMPUTER WINS! Better luck next time!\n");
-                aiWins++;
-                break;
-            }
-
-            if(isDraw())
-            {
-                displayBoard();
-                printf("\nIt's a DRAW!\n");
-                draws++;
-                break;
-            }
+        h1 {
+            color: #243b55;
+            margin-bottom: 10px;
         }
 
-        displayScore();
+        .subtitle {
+            color: #666;
+        }
 
-        printf("\nDo you want to play again? (Y/N): ");
-        scanf(" %c", &playAgain);
+        #turn {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 25px 0;
+            color: #243b55;
+        }
 
-    } while(playAgain == 'Y' || playAgain == 'y');
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: auto;
+        }
 
-    printf("\nThanks for playing TIC TAC TOE!\n");
-    printf("Final Score:\n");
-    displayScore();
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #eaf0f6;
+            border: none;
+            border-radius: 12px;
+            font-size: 45px;
+            font-weight: bold;
+            color: #243b55;
+            cursor: pointer;
+        }
 
-    return 0;
-}
+        .cell:hover:empty {
+            background: #d5e3f3;
+        }
+
+        .cell:disabled {
+            cursor: not-allowed;
+        }
+
+        .cell.win {
+            background: #7bed9f;
+        }
+
+        #result {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 25px 0;
+            color: #243b55;
+        }
+
+        .restart {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            background: #243b55;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .restart:hover {
+            background: #426b99;
+        }
+
+        .score {
+            margin: 20px 0;
+            font-size: 17px;
+            color: #444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game">
+
+        <h1>❌ Tic Tac Toe ⭕</h1>
+
+        <p class="subtitle">Play with your friend!</p>
+
+        <div id="turn">Player X's Turn</div>
+
+        <div class="board" id="board">
+
+            <button class="cell" onclick="makeMove(0)"></button>
+            <button class="cell" onclick="makeMove(1)"></button>
+            <button class="cell" onclick="makeMove(2)"></button>
+
+            <button class="cell" onclick="makeMove(3)"></button>
+            <button class="cell" onclick="makeMove(4)"></button>
+            <button class="cell" onclick="makeMove(5)"></button>
+
+            <button class="cell" onclick="makeMove(6)"></button>
+            <button class="cell" onclick="makeMove(7)"></button>
+            <button class="cell" onclick="makeMove(8)"></button>
+
+        </div>
+
+        <div id="result">Let's Play!</div>
+
+        <div class="score">
+            ❌ Player X: <span id="xScore">0</span>
+            <br><br>
+            ⭕ Player O: <span id="oScore">0</span>
+            <br><br>
+            🤝 Draws: <span id="drawScore">0</span>
+        </div>
+
+        <button class="restart" onclick="restartGame()">
+            🔄 Restart Game
+        </button>
+
+    </div>
+
+    <script>
+
+        let board = ["", "", "", "", "", "", "", "", ""];
+
+        let currentPlayer = "X";
+        let gameActive = true;
+
+        let xScore = 0;
+        let oScore = 0;
+        let drawScore = 0;
+
+        const winningPatterns = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        const cells = document.querySelectorAll(".cell");
+
+        function makeMove(index) {
+
+            if (board[index] !== "" || !gameActive) {
+                return;
+            }
+
+            board[index] = currentPlayer;
+
+            cells[index].innerText = currentPlayer;
+            cells[index].style.color =
+                currentPlayer === "X" ? "#e74c3c" : "#2980b9";
+
+            checkWinner();
+        }
+
+        function checkWinner() {
+
+            let winnerPattern = null;
+
+            for (let pattern of winningPatterns) {
+
+                const [a, b, c] = pattern;
+
+                if (
+                    board[a] !== "" &&
+                    board[a] === board[b] &&
+                    board[b] === board[c]
+                ) {
+                    winnerPattern = pattern;
+                    break;
+                }
+            }
+
+            if (winnerPattern) {
+
+                gameActive = false;
+
+                winnerPattern.forEach(index => {
+                    cells[index].classList.add("win");
+                });
+
+                document.getElementById("result").innerText =
+                    "🎉 Player " + currentPlayer + " Wins!";
+
+                if (currentPlayer === "X") {
+                    xScore++;
+                    document.getElementById("xScore").innerText = xScore;
+                } else {
+                    oScore++;
+                    document.getElementById("oScore").innerText = oScore;
+                }
+
+                document.getElementById("turn").innerText =
+                    "Game Over!";
+
+                return;
+            }
+
+            if (!board.includes("")) {
+
+                gameActive = false;
+                drawScore++;
+
+                document.getElementById("drawScore").innerText = drawScore;
+                document.getElementById("result").innerText =
+                    "🤝 It's a Draw!";
+
+                document.getElementById("turn").innerText =
+                    "Game Over!";
+
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+            document.getElementById("turn").innerText =
+                "Player " + currentPlayer + "'s Turn";
+        }
+
+        function restartGame() {
+
+            board = ["", "", "", "", "", "", "", "", ""];
+
+            currentPlayer = "X";
+            gameActive = true;
+
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.disabled = false;
+                cell.classList.remove("win");
+            });
+
+            document.getElementById("turn").innerText =
+                "Player X's Turn";
+
+            document.getElementById("result").innerText =
+                "Let's Play!";
+        }
+
+    </script>
+
+</body>
+</html>
